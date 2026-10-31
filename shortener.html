@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مقلّص الروابط</title>
+<style>
+  :root {
+    --bg1: #1e1b4b;
+    --bg2: #0f172a;
+    --card: rgba(255, 255, 255, 0.07);
+    --border: rgba(255, 255, 255, 0.15);
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #6366f1;
+    --accent2: #22d3ee;
+    --ok: #34d399;
+    --err: #f87171;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    color: var(--text);
+    background: radial-gradient(circle at top right, var(--bg1), var(--bg2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .container {
+    width: 100%;
+    max-width: 620px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 36px 28px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+  }
+  .logo {
+    width: 64px; height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px;
+  }
+  h1 { text-align: center; font-size: 1.7rem; margin-bottom: 6px; }
+  .sub { text-align: center; color: var(--muted); margin-bottom: 28px; font-size: .95rem; }
+  .input-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .input-group input {
+    flex: 1 1 260px;
+    padding: 15px 18px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--text);
+    font-size: 1rem;
+    outline: none;
+    direction: ltr;
+    text-align: left;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .input-group input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+  }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: transform .15s, opacity .2s;
+  }
+  button:active { transform: scale(.97); }
+  .btn-main {
+    padding: 15px 26px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+  }
+  .btn-main:disabled { opacity: .6; cursor: wait; }
+  .message { margin-top: 14px; min-height: 22px; font-size: .9rem; text-align: center; }
+  .message.error { color: var(--err); }
+  .result {
+    display: none;
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px dashed var(--ok);
+    background: rgba(52, 211, 153, 0.08);
+    animation: pop .3s ease;
+  }
+  .result.show { display: block; }
+  .result small { color: var(--muted); display: block; margin-bottom: 8px; }
+  .result-row { display: flex; align-items: center; gap: 10px; }
+  .result-row a {
+    flex: 1;
+    color: var(--ok);
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    direction: ltr;
+    text-align: left;
+    word-break: break-all;
+  }
+  .btn-copy {
+    padding: 10px 18px;
+    background: var(--ok);
+    color: #052e1f;
+  }
+  h2 { margin: 30px 0 12px; font-size: 1.05rem; color: var(--muted); }
+  .history { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .history li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    font-size: .88rem;
+  }
+  .history .orig {
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 45%;
+    direction: ltr;
+  }
+  .history a { color: var(--accent2); text-decoration: none; direction: ltr; }
+  .empty { color: var(--muted); text-align: center; font-size: .88rem; }
+  .btn-clear {
+    display: block;
+    margin: 14px auto 0;
+    padding: 8px 16px;
+    font-size: .8rem;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  @keyframes pop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (max-width: 480px) {
+    .container { padding: 28px 18px; }
+    .btn-main { width: 100%; }
+    .history .orig { display: none; }
+  }
+</style>
+</head>
+<body>
+  <main class="container">
+    <div class="logo">🔗</div>
+    <h1>مقلّص الروابط</h1>
+    <p class="sub">حوّل أي رابط طويل إلى رابط قصير وسهل المشاركة</p>
+
+    <form class="input-group" id="form">
+      <input type="text" id="url" placeholder="https://example.com/very/long/link" autocomplete="off" required>
+      <button type="submit" class="btn-main" id="submit">قلّص الرابط</button>
+    </form>
+    <div class="message" id="message"></div>
+
+    <section class="result" id="result">
+      <small>الرابط المقلَّص:</small>
+      <div class="result-row">
+        <a id="shortLink" href="#" target="_blank" rel="noopener"></a>
+        <button class="btn-copy" id="copy">نسخ</button>
+      </div>
+    </section>
+
+    <h2>آخر الروابط</h2>
+    <ul class="history" id="history"></ul>
+    <button class="btn-clear" id="clear">مسح السجل</button>
+  </main>
+
+<script>
+  const form = document.getElementById('form');
+  const urlInput = document.getElementById('url');
+  const submitBtn = document.getElementById('submit');
+  const message = document.getElementById('message');
+  const result = document.getElementById('result');
+  const shortLink = document.getElementById('shortLink');
+  const copyBtn = document.getElementById('copy');
+  const historyEl = document.getElementById('history');
+  const clearBtn = document.getElementById('clear');
+
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem('links') || '[]'); } catch (e) {}
+
+  function save() {
+    try { localStorage.setItem('links', JSON.stringify(history.slice(0, 5))); } catch (e) {}
+  }
+
+  function renderHistory() {
+    historyEl.innerHTML = '';
+    if (!history.length) {
+      historyEl.innerHTML = '<li class="empty" style="justify-content:center">لا توجد روابط بعد</li>';
+      return;
+    }
+    history.slice(0, 5).forEach(item => {
+      const li = document.createElement('li');
+      const orig = document.createElement('span');
+      orig.className = 'orig';
+      orig.textContent = item.original;
+      const a = document.createElement('a');
+      a.href = item.short;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = item.short;
+      li.append(orig, a);
+      historyEl.appendChild(li);
+    });
+  }
+
+  function isValidUrl(value) {
+    try {
+      const u = new URL(value);
+      return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch (e) { return false; }
+  }
+
+  async function shorten(url) {
+    // خدمة is.gd العامة (بدون مفتاح API)
+    const res = await fetch('https://is.gd/create.php?format=json&url=' + encodeURIComponent(url));
+    const data = await res.json();
+    if (data.shorturl) return data.shorturl;
+    throw new Error(data.errormessage || 'فشل تقليص الرابط');
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    let value = urlInput.value.trim();
+    if (value && !/^https?:\/\//i.test(value)) value = 'https://' + value;
+
+    message.className = 'message';
+    message.textContent = '';
+    result.classList.remove('show');
+
+    if (!isValidUrl(value)) {
+      message.className = 'message error';
+      message.textContent = 'الرجاء إدخال رابط صحيح';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'جارٍ التقليص...';
+    try {
+      const short = await shorten(value);
+      shortLink.href = short;
+      shortLink.textContent = short;
+      result.classList.add('show');
+      history.unshift({ original: value, short });
+      save();
+      renderHistory();
+    } catch (err) {
+      message.className = 'message error';
+      message.textContent = 'تعذّر تقليص الرابط. تحقق من الاتصال وحاول مجددًا.';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'قلّص الرابط';
+    }
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(shortLink.textContent);
+      copyBtn.textContent = 'تم النسخ ✓';
+    } catch (e) {
+      copyBtn.textContent = 'انسخه يدويًا';
+    }
+    setTimeout(() => copyBtn.textContent = 'نسخ', 1800);
+  });
+
+  clearBtn.addEventListener('click', () => {
+    history = [];
+    save();
+    renderHistory();
+  });
+
+  renderHistory();
+</script>
+</body>
+</html>
